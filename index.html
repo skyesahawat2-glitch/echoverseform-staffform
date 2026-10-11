@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoVerse Studio - Staff Application</title>
+    <link rel="icon" type="image/png" href="EVS-logo-web.png">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #f7f6f3;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --input-bg: #fdfcfb;
+            --accent: #d97706;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 40px 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column;
+        }
+
+        .container, .closed-container {
+            background-color: var(--card-bg); width: 100%; max-width: 650px; padding: 50px 60px;
+            border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); box-sizing: border-box; animation: fadeIn 0.6s ease;
+        }
+        @media (max-width: 600px) { .container, .closed-container { padding: 30px 25px; } }
+
+        .brand-title { text-align: center; font-weight: 500; font-size: 18px; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+        h2 { text-align: center; font-weight: 500; font-size: 22px; margin-top: 0; margin-bottom: 40px; }
+
+        .step { display: none; } .step.active { display: block; }
+        .form-group { margin-bottom: 35px; }
+        label { display: block; font-weight: 400; font-size: 15px; margin-bottom: 12px; line-height: 1.5; }
+
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 14px 16px; background-color: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 12px; font-family: 'Prompt', sans-serif; font-size: 15px; outline: none; transition: 0.2s; box-sizing: border-box;
+        }
+        input:focus { border-color: var(--accent); background-color: #ffffff; box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.08); }
+
+        .radio-group { display: flex; flex-direction: column; gap: 12px; }
+        .radio-group label {
+            display: flex; align-items: flex-start; padding: 16px 18px; background-color: var(--input-bg);
+            border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .radio-group label:hover { background-color: #fffbeb; }
+        .radio-group input[type="radio"] { margin-right: 15px; margin-top: 4px; accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .radio-group label:has(input[type="radio"]:checked) { background-color: #fef3c7; border-color: var(--accent); color: #b45309; font-weight: 500; }
+
+        .pos-desc { font-size: 13px; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 400; }
+
+        button { width: 100%; padding: 15px; background-color: var(--accent); color: #ffffff; border: none; border-radius: 12px; font-family: 'Prompt', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #b45309; }
+        .btn-discord { display: inline-block; margin-top: 20px; padding: 14px 28px; background-color: #5865F2; color: #ffffff; text-decoration: none; border-radius: 12px; font-size: 15px; transition: 0.2s; }
+        .btn-discord:hover { opacity: 0.9; }
+
+        .closed-container { text-align: center; }
+        .closed-container .icon { font-size: 50px; margin-bottom: 12px; }
+        .closed-container p { font-size: 15px; line-height: 1.7; color: var(--text-muted); margin-bottom: 30px; }
+
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: var(--text-muted); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- ฟอร์มหลัก -->
+<div class="container" id="form-section">
+    <div class="brand-title">EchoVerse Studio</div>
+
+    <div id="step-1" class="step active">
+        <h2>ฟอร์มรับสมัครทีมงาน (Staff)</h2>
+
+        <div class="form-group">
+            <label>1. ชื่อเล่นของคุณ (ชื่อที่ใช้เรียกในทีม)</label>
+            <input type="text" id="nickname" placeholder="ระบุชื่อของคุณ">
+        </div>
+
+        <div class="form-group">
+            <label>2. อายุของคุณ</label>
+            <input type="number" id="age" placeholder="ระบุอายุจริง">
+        </div>
+
+        <div class="form-group">
+            <label>3. ตำแหน่งที่ต้องการสมัคร</label>
+            <div class="radio-group">
+                <label id="label-it">
+                    <input type="radio" name="position" value="Junior IT">
+                    <div>
+                        Junior Information Technology (IT)
+                        <span class="pos-desc" id="desc-it">สมาชิกทีมฝ่ายเทคโนโลยีและฝ่ายสนับสนุนทางด้านเทคโนโลยี</span>
+                    </div>
+                </label>
+                <label id="label-graphic">
+                    <input type="radio" name="position" value="Junior Graphic Design">
+                    <div>
+                        Junior Graphic Design and Media Production
+                        <span class="pos-desc" id="desc-graphic">สมาชิกทีมฝ่ายกราฟฟิกดีไซน์และการผลิตสื่อบันเทิง</span>
+                    </div>
+                </label>
+                <label id="label-admin">
+                    <input type="radio" name="position" value="Admin">
+                    <div>
+                        Admin (แอดมิน)
+                        <span class="pos-desc" id="desc-admin">ดูแลความเรียบร้อย คุมโรลเพลย์ หรือแสตนด์บายรับ Ticket</span>
+                    </div>
+                </label>
+                <label id="label-creative">
+                    <input type="radio" name="position" value="Creative">
+                    <div>
+                        Creative
+                        <span class="pos-desc" id="desc-creative">ฝ่ายสร้างโลกและคิดเนื้อเรื่อง Minecraft Java Edition</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. Discord ID สำหรับติดต่อสัมภาษณ์</label>
+            <input type="text" id="discord" placeholder="เช่น username#1234 หรือ username">
+        </div>
+
+        <button id="submitBtn" onclick="submitForm()">ส่งใบสมัครทีมงาน</button>
+    </div>
+
+    <div id="step-3" class="step" style="text-align: center; padding: 20px 0;">
+        <div style="font-size: 48px; margin-bottom: 15px;">☕</div>
+        <h2 style="margin-bottom: 15px;">ส่งใบสมัครเรียบร้อยแล้ว</h2>
+        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.7; margin-bottom: 25px;">
+            ทีมงานได้รับข้อมูลของคุณแล้วครับ เราจะพิจารณาและติดต่อกลับไปทาง Discord โดยเร็วที่สุด ขอให้โชคดีนะครับ!
+        </p>
+        <a href="https://discord.gg/Kn7xWUkgJT" target="_blank" class="btn-discord">เข้า Discord หลักของเรา</a>
+    </div>
+</div>
+
+<!-- หน้าปิดรับสมัคร Staff -->
+<div class="closed-container" id="closed-section" style="display: none;">
+    <div class="brand-title">EchoVerse Studio</div>
+    <div class="icon">✨</div>
+    <h2>ปิดรับสมัครทีมงานชั่วคราว</h2>
+    <p>ขณะนี้ระบบรับสมัครทีมงาน (Staff) ของ EchoVerse Studio ถูกปิดรับสมัครชั่วคราว หรือโควตารอบนี้เต็มแล้ว ไว้พบกันใหม่ในโอกาสหน้านะครับ! 🤍</p>
+    <a href="https://discord.gg/Kn7xWUkgJT" target="_blank" class="btn-discord">เข้า Discord เพื่อติดตามข่าวสาร</a>
+</div>
+
+<div class="footer">
+    EchoVerse Studio All Right Reserved
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://uyafyxjijsnpoeohzxur.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_2jchaTIQkA3MfHctiYqEaw_I48dEB3A';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const ID_MAP = {
+        'Junior IT': { label: 'label-it', desc: 'desc-it' },
+        'Junior Graphic Design': { label: 'label-graphic', desc: 'desc-graphic' },
+        'Admin': { label: 'label-admin', desc: 'desc-admin' },
+        'Creative': { label: 'label-creative', desc: 'desc-creative' }
+    };
+
+    window.onload = async function() {
+        const [settingsRes, appsRes] = await Promise.all([
+            supabaseClient.from('settings').select('*'),
+            supabaseClient.from('staff_applications').select('position')
+        ]);
+
+        if (settingsRes.error || appsRes.error) return;
+
+        const settings = settingsRes.data;
+        const apps = appsRes.data;
+
+        // 1. เช็คสถานะเปิด-ปิดฟอร์ม Staff ภาพรวม
+        const staffFormStatus = settings.find(s => s.setting_key === 'staff_form_status');
+        if (staffFormStatus && staffFormStatus.is_open === false) {
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('closed-section').style.display = 'block';
+            return;
+        }
+
+        // 2. นับจำนวนผู้สมัครแต่ละตำแหน่งจริงจากฐานข้อมูล
+        const counts = {};
+        apps.forEach(app => {
+            counts[app.position] = (counts[app.position] || 0) + 1;
+        });
+
+        // 3. ตรวจสอบสถานะเปิด/ปิดรายตำแหน่ง และโควตา
+        settings.forEach(setting => {
+            const posName = setting.setting_key;
+            if (ID_MAP[posName]) {
+                const quotaLimit = setting.quota !== undefined ? setting.quota : 0;
+                const currentCount = counts[posName] || 0;
+                const mapping = ID_MAP[posName];
+
+                const descElem = document.getElementById(mapping.desc);
+                if (descElem) {
+                    descElem.innerHTML += ` (รับ ${quotaLimit} คน / สมัครแล้ว ${currentCount} คน)`;
+                }
+
+                // ถ้าแอดมินกดปิดสวิตช์ตำแหน่งนั้น หรือจำนวนคนสมัครครบโควตาแล้ว
+                if (setting.is_open === false || currentCount >= quotaLimit) {
+                    const labelElem = document.getElementById(mapping.label);
+                    if (labelElem) {
+                        const radio = labelElem.querySelector('input');
+                        radio.disabled = true;
+                        labelElem.style.opacity = '0.5';
+                        labelElem.style.cursor = 'not-allowed';
+
+                        const reasonText = setting.is_open === false ? '(ปิดรับสมัคร)' : '(เต็มแล้ว)';
+                        labelElem.innerHTML += `<div style="color: #e53e3e; font-size: 13px; font-weight: 500; margin-left: auto; white-space: nowrap;">${reasonText}</div>`;
+                    }
+                }
+            }
+        });
+    };
+
+    async function submitForm() {
+        const nickname = document.getElementById('nickname').value;
+        const age = document.getElementById('age').value;
+        const discord = document.getElementById('discord').value;
+        const positionInput = document.querySelector('input[name="position"]:checked');
+
+        if (!nickname || !age || !discord) { alert("กรุณากรอกข้อมูลให้ครบทุกช่องครับ"); return; }
+        if (!positionInput) { alert("กรุณาเลือกตำแหน่งที่ต้องการสมัครครับ (ถ้ากดไม่ได้แปลว่าปิดรับหรือเต็มแล้ว)"); return; }
+
+        const posValue = positionInput.value;
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = 'กำลังบันทึก...';
+        btn.style.pointerEvents = 'none';
+
+        // เช็คสถานะตำแหน่งล่าสุดในฐานข้อมูลก่อนส่ง
+        const { data: latestSetting } = await supabaseClient.from('settings').select('*').eq('setting_key', posValue).single();
+        const { data: checkData } = await supabaseClient.from('staff_applications').select('position').eq('position', posValue);
+
+        if (latestSetting) {
+            const quotaLimit = latestSetting.quota || 0;
+            const currentCount = checkData ? checkData.length : 0;
+            if (latestSetting.is_open === false || currentCount >= quotaLimit) {
+                alert("ขออภัยครับ ตำแหน่งนี้เพิ่งถูกปิดรับสมัครหรือเต็มไปพอดีระหว่างที่คุณกำลังกรอกฟอร์ม");
+                window.location.reload();
+                return;
+            }
+        }
+
+        const data = { nickname: nickname, age: parseInt(age), position: posValue, discord_id: discord };
+        const { error } = await supabaseClient.from('staff_applications').insert([data]);
+
+        if (error) {
+            alert("เกิดข้อผิดพลาด: " + error.message);
+            btn.innerHTML = 'ส่งใบสมัครทีมงาน';
+            btn.style.pointerEvents = 'auto';
+        } else {
+            document.getElementById('step-1').classList.remove('active');
+            document.getElementById('step-3').classList.add('active');
+        }
+    }
+</script>
+</body>
+</html>
