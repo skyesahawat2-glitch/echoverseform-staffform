@@ -62,6 +62,19 @@
         .closed-container .icon { font-size: 50px; margin-bottom: 12px; }
         .closed-container p { font-size: 15px; line-height: 1.7; color: var(--text-muted); margin-bottom: 30px; }
 
+        .terms-box { background-color: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 20px; }
+        .terms-pos { text-align: center; font-size: 14px; color: var(--accent); font-weight: 500; margin: -24px 0 24px; }
+        .terms-list { margin: 0; padding-left: 22px; font-size: 14.5px; line-height: 1.8; }
+        .terms-list li { margin-bottom: 10px; }
+        .terms-list li:last-child { margin-bottom: 0; }
+        .terms-note { background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 12px; padding: 16px 20px; font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+        .accept-label { display: flex !important; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 14.5px; margin-bottom: 25px !important; }
+        .accept-label input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+        .btn-row { display: flex; gap: 12px; }
+        .btn-row button { flex: 1; }
+        button.btn-secondary { background-color: #edf2f7; color: var(--text-main); }
+        button.btn-secondary:hover { background-color: #e2e8f0; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .footer { margin-top: 30px; text-align: center; font-size: 12px; color: var(--text-muted); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -124,7 +137,31 @@
             <input type="text" id="discord" placeholder="เช่น username#1234 หรือ username">
         </div>
 
-        <button id="submitBtn" onclick="submitForm()">ส่งใบสมัครทีมงาน</button>
+        <button id="nextBtn" onclick="goToTerms()">ถัดไป</button>
+    </div>
+
+    <!-- หน้าข้อกำหนดก่อนส่งใบสมัคร -->
+    <div id="step-2" class="step">
+        <h2>ข้อกำหนดก่อนส่งใบสมัคร</h2>
+        <div class="terms-pos" id="terms-position"></div>
+
+        <div class="terms-box">
+            <ol class="terms-list" id="terms-list"></ol>
+        </div>
+
+        <div class="terms-note">
+            ผู้สมัครทุกคนจะไม่มีเงินเดือน แต่หากต้องการร่วมเก็บประสบการณ์ไปด้วยกันก็สามารถส่งใบสมัครมาได้เลยจร้า
+        </div>
+
+        <label class="accept-label">
+            <input type="checkbox" id="acceptTerms" onchange="document.getElementById('submitBtn').disabled = !this.checked">
+            <span>ข้าพเจ้าได้อ่านและยอมรับข้อกำหนดข้างต้นทั้งหมด</span>
+        </label>
+
+        <div class="btn-row">
+            <button class="btn-secondary" onclick="backToForm()">ย้อนกลับ</button>
+            <button id="submitBtn" onclick="submitForm()" disabled>ส่งใบสมัครทีมงาน</button>
+        </div>
     </div>
 
     <div id="step-3" class="step" style="text-align: center; padding: 20px 0;">
@@ -217,6 +254,59 @@
         });
     };
 
+    const TERMS = {
+        'Junior IT': [
+            'ผู้สมัครต้องมี computer ที่สามารถใช้ทำงานได้',
+            'ผู้สมัครต้องมีอายุขั้นต่ำ 12 ปีขึ้นไป',
+            'ในกรณีที่ผู้สมัครร่วมทำ ระบบ, code, server และอื่นๆ ผลงานนั้นจะตกเป็นผลงานในชื่อ EchoVerseStudio ทันที และจะมีการใส่ชื่อผู้ร่วมทำ แต่หากผู้สมัครเป็นผู้ทำเองโดยที่มิได้มีผู้ใดใน EchoVerseStudio ร่วมสร้าง จะถือเป็นทรัพย์สินส่วนบุคคลของผู้สมัครตามปกติ',
+            'ผู้สมัครมีความประสงค์ที่จะเป็นทีมงานของ EchoVerseStudio'
+        ],
+        'Junior Graphic Design': [
+            'ผู้สมัครต้องมี computer ที่สามารถใช้ทำงานได้',
+            'ผู้สมัครต้องมีอายุขั้นต่ำ 12 ปีขึ้นไป',
+            'ในกรณีที่ผู้สมัครร่วมทำ รูปวาด, animation, คลิปที่ร่วมตัดต่อ และอื่นๆ ผลงานนั้นจะตกเป็นผลงานในชื่อ EchoVerseStudio ทันที และจะมีการใส่ชื่อผู้ร่วมทำ แต่หากผู้สมัครเป็นผู้ทำเองโดยที่มิได้มีผู้ใดใน EchoVerseStudio ร่วมสร้าง จะถือเป็นทรัพย์สินส่วนบุคคลของผู้สมัครตามปกติ',
+            'ผู้สมัครมีความประสงค์ที่จะเป็นทีมงานของ EchoVerseStudio'
+        ],
+        'Admin': [
+            'ผู้สมัครต้องมี computer หรืออุปกรณ์สื่อสารที่ใช้ Discord ได้',
+            'ผู้สมัครต้องมีอายุขั้นต่ำ 13 ปีขึ้นไป',
+            'ในกรณีที่ผู้สมัครประสงค์จะร่วมโรลเพลย์ด้วย จะมีการให้ผู้สมัครคุมพฤติกรรมของลูกโรลในเซิร์ฟ',
+            'ผู้สมัครมีความประสงค์ที่จะเป็นทีมงานของ EchoVerseStudio'
+        ],
+        'Creative': [
+            'ผู้สมัครต้องมี computer ที่สามารถรัน Minecraft Java/Bedrock Edition ได้',
+            'ผู้สมัครต้องมีตัวเกม Minecraft Java/Bedrock แท้เท่านั้น มือ 1 หรือ มือ 2 ก็ได้',
+            'ในกรณีที่ผู้สมัครร่วมทำ สถาปัตยกรรม และอื่นๆ ผลงานนั้นจะตกเป็นผลงานในชื่อ EchoVerseStudio ทันที และจะมีการใส่ชื่อผู้ร่วมทำ',
+            'ผู้สมัครมีความประสงค์ที่จะเป็นทีมงานของ EchoVerseStudio'
+        ]
+    };
+
+    function goToTerms() {
+        const nickname = document.getElementById('nickname').value;
+        const age = document.getElementById('age').value;
+        const discord = document.getElementById('discord').value;
+        const positionInput = document.querySelector('input[name="position"]:checked');
+
+        if (!nickname || !age || !discord) { alert("กรุณากรอกข้อมูลให้ครบทุกช่องครับ"); return; }
+        if (!positionInput) { alert("กรุณาเลือกตำแหน่งที่ต้องการสมัครครับ (ถ้ากดไม่ได้แปลว่าปิดรับหรือเต็มแล้ว)"); return; }
+
+        const pos = positionInput.value;
+        document.getElementById('terms-position').textContent = 'ตำแหน่ง: ' + pos;
+        document.getElementById('terms-list').innerHTML = (TERMS[pos] || []).map(t => `<li>${t}</li>`).join('');
+        document.getElementById('acceptTerms').checked = false;
+        document.getElementById('submitBtn').disabled = true;
+
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function backToForm() {
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-1').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     async function submitForm() {
         const nickname = document.getElementById('nickname').value;
         const age = document.getElementById('age').value;
@@ -225,6 +315,8 @@
 
         if (!nickname || !age || !discord) { alert("กรุณากรอกข้อมูลให้ครบทุกช่องครับ"); return; }
         if (!positionInput) { alert("กรุณาเลือกตำแหน่งที่ต้องการสมัครครับ (ถ้ากดไม่ได้แปลว่าปิดรับหรือเต็มแล้ว)"); return; }
+
+        if (!document.getElementById('acceptTerms').checked) { alert("กรุณายอมรับข้อกำหนดก่อนส่งใบสมัครครับ"); return; }
 
         const posValue = positionInput.value;
         const btn = document.getElementById('submitBtn');
@@ -253,7 +345,7 @@
             btn.innerHTML = 'ส่งใบสมัครทีมงาน';
             btn.style.pointerEvents = 'auto';
         } else {
-            document.getElementById('step-1').classList.remove('active');
+            document.getElementById('step-2').classList.remove('active');
             document.getElementById('step-3').classList.add('active');
         }
     }
